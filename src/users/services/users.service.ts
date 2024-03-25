@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
+import { ProductsService } from './../../products/services/products.service';
 import { User } from '../entities/user.entity';
+import { Order } from '../entities/order.entity';
 import { CreateUserDto, UpdateUserDto } from '../dtos/user.dto';
 
 @Injectable()
@@ -15,7 +18,16 @@ export class UsersService {
     },
   ];
 
+  constructor(
+    private productsService: ProductsService,
+    private configService: ConfigService,
+  ) {}
+
   findAll() {
+    const apiKey = this.configService.get('API_KEY');
+    const dbName = this.configService.get('DATABASE_NAME');
+    console.log('apiKey', apiKey);
+    console.log('atabaseName', dbName);
     return this.users;
   }
 
@@ -54,5 +66,19 @@ export class UsersService {
     }
     this.users.splice(index, 1);
     return true;
+  }
+  getOrdersByUser(id: number): Order {
+    const user = this.findOne(id);
+    // Por el momento trabajamos en memoria
+    // recuperamos un usuario,
+    // agregamos una fecha y
+    // nos traemos los productos desde el servicio de prosuctos
+    // utilizando la inyección de dependencias porque está en otro módulo
+    // (Ver el constructor de esta clase)
+    return {
+      date: new Date(),
+      user,
+      products: this.productsService.findAll(),
+    };
   }
 }
