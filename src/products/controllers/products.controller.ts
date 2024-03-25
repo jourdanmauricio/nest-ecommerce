@@ -30,7 +30,6 @@ export class ProductsController {
     return this.productsService.findAll();
   }
 
-  // El Pipe Se envía como segundo parámetro en el decorador
   @Get(':productId')
   getOne(@Param('productId', ParseIntPipe) productId: number) {
     return this.productsService.findOne(productId);

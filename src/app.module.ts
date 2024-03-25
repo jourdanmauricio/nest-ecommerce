@@ -14,13 +14,10 @@ import config from './config';
 
 @Module({
   imports: [
-    // indicamos el archivo .env y que será global
     ConfigModule.forRoot({
       envFilePath: environments[process.env.NODE_ENV] || '.env',
-      // cargamos la configuración
       load: [config],
       isGlobal: true,
-      // Indicamos la validacion de schema
       validationSchema: Joi.object({
         API_KEY: Joi.number().required(),
         DATABASE_NAME: Joi.string().required(),
@@ -35,7 +32,6 @@ import config from './config';
   controllers: [AppController],
   providers: [
     AppService,
-    // no utilizamos useValue porque será asíncrono
     {
       provide: 'TASKS',
       useFactory: async () => {
