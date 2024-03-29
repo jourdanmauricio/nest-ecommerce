@@ -17,26 +17,26 @@ export class Customer {
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ name: 'last_name', type: 'varchar', length: 255 })
   lastName: string;
 
   @Column({ type: 'varchar', length: 255 })
   phone: string;
 
   @CreateDateColumn({
+    name: 'create_at',
     type: 'timestamptz',
     default: () => 'CURRENT_TIMESTAMP',
   })
   createAt: Date;
 
   @CreateDateColumn({
+    name: 'update_at',
     type: 'timestamptz',
     default: () => 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
 
-  // Para que funcione la relación bidireccional debemos
-  // especificar contra que campo se resuelve la referencia
   @OneToOne(() => User, (user) => user.customer, { nullable: true })
   user: User;
 

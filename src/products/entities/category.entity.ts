@@ -17,18 +17,28 @@ export class Category {
   name: string;
 
   @CreateDateColumn({
+    name: 'create_at',
     type: 'timestamptz',
     default: () => 'CURRENT_TIMESTAMP',
   })
   createAt: Date;
 
   @CreateDateColumn({
+    name: 'update_at',
     type: 'timestamptz',
     default: () => 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
 
   @ManyToMany(() => Product, (product) => product.categories)
-  @JoinTable()
+  @JoinTable({
+    name: 'categories_products',
+    joinColumn: {
+      name: 'category_id',
+    },
+    inverseJoinColumn: {
+      name: 'product_id',
+    },
+  })
   products: Product[];
 }

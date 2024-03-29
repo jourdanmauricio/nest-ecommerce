@@ -23,24 +23,20 @@ export class User {
   role: string;
 
   @CreateDateColumn({
+    name: 'create_at',
     type: 'timestamptz',
     default: () => 'CURRENT_TIMESTAMP',
   })
   createAt: Date;
 
   @CreateDateColumn({
+    name: 'update_at',
     type: 'timestamptz',
     default: () => 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
 
-  // JoinColumn crea la referencia hacia la otra tabla
-  // Se coloca en la tabla que queremos que cargue la relación
-  // Joincolumn no se puede colocar en las dos tablas
-  // nullable: true -> indica que pueden existir users que no sean customers
-  // Para que funcione la relación bidireccional debemos
-  // especificar contra que campo se resuelve la referencia
   @OneToOne(() => Customer, (customer) => customer.user, { nullable: true })
-  @JoinColumn()
+  @JoinColumn({ name: 'customer_id' })
   customer: Customer;
 }

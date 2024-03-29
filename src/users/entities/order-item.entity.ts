@@ -2,25 +2,31 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import { Order } from './order.entity';
 import { Product } from '../../products/entities/product.entity';
+import { Exclude } from 'class-transformer';
 
-@Entity()
+@Entity({ name: 'order_items' })
 export class OrderItem {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Exclude()
   @CreateDateColumn({
+    name: 'create_at',
     type: 'timestamptz',
     default: () => 'CURRENT_TIMESTAMP',
   })
   createAt: Date;
 
+  @Exclude()
   @CreateDateColumn({
+    name: 'update_at',
     type: 'timestamptz',
     default: () => 'CURRENT_TIMESTAMP',
   })
@@ -29,17 +35,11 @@ export class OrderItem {
   @Column({ type: 'int' })
   quantity: number;
 
-  // Relación hacia products
-  // No habililitamos la relación bidireccional
-  // porque no nos interesa obtener las ordernes
-  // en las que participó un producto.
   @ManyToOne(() => Product)
+  @JoinColumn({ name: 'product_id' })
   product: Product;
 
-  // Relación hacia orders
-  // En este caso si establecemos la bidireccionalidad
-  // Nos interesa los items de una orden,
-  // y desde los obtener la info de la orden
   @ManyToOne(() => Order, (order) => order.items)
+  @JoinColumn({ name: 'order_id' })
   order: Order;
 }
