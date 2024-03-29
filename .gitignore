@@ -1,4 +1,6 @@
 *.env
+/postgres_data
+*.txt
 
 # compiled output
 /dist

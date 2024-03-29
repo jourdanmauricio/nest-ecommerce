@@ -6,20 +6,15 @@ import {
   IsUrl,
   IsNotEmpty,
   IsPositive,
+  IsArray,
 } from 'class-validator';
 // isEmail, isDate, etc
 
 export class CreateProductDto {
-  // readonly no permite que modifiquemos el valor
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
   readonly name: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  readonly brand: string;
 
   @ApiProperty()
   @IsString()
@@ -42,6 +37,16 @@ export class CreateProductDto {
   @IsUrl()
   @IsNotEmpty()
   readonly image: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsPositive()
+  readonly brandId: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsArray()
+  readonly categoriesIds: number[];
 }
 
 export class UpdateProductDto extends PartialType(CreateProductDto) {}

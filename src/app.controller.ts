@@ -14,4 +14,9 @@ export class AppController {
   getHealth(): string {
     return 'Server working correctly';
   }
+
+  @Get('tasks')
+  getTasks() {
+    return this.appService.getTasks();
+  }
 }

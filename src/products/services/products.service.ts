@@ -1,76 +1,107 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { In, Repository } from 'typeorm';
+
 import { Product } from '../entities/product.entity';
 import { CreateProductDto, UpdateProductDto } from '../dtos/products.dtos';
+import { Category } from '../entities/category.entity';
+import { Brand } from '../entities/brand.entity';
 
 @Injectable()
 export class ProductsService {
-  // Simulamos el id. Luego lo gestionará la BD
-
-  private counterId = 0;
-  private products: Product[] = [
-    {
-      id: 1,
-      name: 'Camisas para hombre',
-      brand: 'Calvin Klein',
-      description: 'Camisas para hombre Calvin Klein - azul, negra, blanca',
-      price: 20,
-      stock: 27,
-      image: 'https://...',
-    },
-    {
-      id: 2,
-      name: 'Calzado de seguridad',
-      brand: 'Ombu',
-      description: 'Calzado de trabajo Ombu Ozono. Segurida y Confort',
-      price: 60,
-      stock: 34,
-      image: 'https://...',
-    },
-  ];
+  constructor(
+    @InjectRepository(Product) private productRepo: Repository<Product>,
+    // private brandsService: BrandsService,
+    @InjectRepository(Brand) private brandRepo: Repository<Brand>,
+    @InjectRepository(Category) private categoryRepo: Repository<Category>,
+  ) {}
 
   findAll() {
-    return this.products;
+    return this.productRepo.find({ relations: ['brand'] });
   }
 
-  findOne(id: number) {
-    const product = this.products.find((item) => item.id === id);
+  async findOne(id: number) {
+    const product = await this.productRepo.findOne({
+      where: { id },
+      relations: ['brand', 'categories'],
+    });
 
     if (!product) throw new NotFoundException('product not found');
     return product;
   }
 
-  create(payload: CreateProductDto) {
-    this.counterId = this.counterId + 1;
-
-    const newProduct = {
-      id: this.counterId,
-      ...payload,
-    };
-    this.products.push(newProduct);
-
-    return newProduct;
-  }
-
-  update(id: number, payload: UpdateProductDto) {
-    const product = this.findOne(id);
-
-    if (product) {
-      const index = this.products.findIndex((item) => item.id === id);
-      this.products[index] = {
-        ...product,
-        ...payload,
-      };
-      return this.products[index];
+  async create(data: CreateProductDto) {
+    const newProduct = this.productRepo.create(data);
+    if (data.brandId) {
+      const brand = await this.brandRepo.findOne({
+        where: { id: data.brandId },
+      });
+      newProduct.brand = brand;
     }
 
-    return null;
+    if (data.categoriesIds) {
+      const categories = await this.categoryRepo.findBy({
+        id: In(data.categoriesIds),
+      });
+      newProduct.categories = categories;
+    }
+
+    return this.productRepo.save(newProduct);
+  }
+
+  async removeCategoryByProd(productId: number, categoryId: number) {
+    const product = await this.productRepo.findOne({
+      where: { id: productId },
+      relations: ['categories'],
+    });
+    product.categories = product.categories.filter(
+      (item) => item.id !== categoryId,
+    );
+
+    return this.productRepo.save(product);
+  }
+
+  async addCategoryToProd(productId: number, categoryId: number) {
+    const product = await this.productRepo.findOne({
+      where: { id: productId },
+      relations: ['categories'],
+    });
+
+    const category = await this.categoryRepo.findOneBy({ id: categoryId });
+    product.categories.push(category);
+    return this.productRepo.save(product);
+  }
+
+  async update(id: number, changes: UpdateProductDto) {
+    const product = await this.findOne(id);
+
+    // Si hay cambio de marca
+    if (changes.brandId) {
+      const brand = await this.brandRepo.findOne({
+        where: { id: changes.brandId },
+      });
+      product.brand = brand;
+    }
+
+    // Si hay cambios en categorías
+    // Esto funciona pero desde el front siempre
+    // se debe enviar todas las categorías.
+
+    // Una buena práctica para el manejo de arrays es
+    // separarlo en un método diferente
+    // y generar endpoints para agregar o quitar categorias
+    if (changes.categoriesIds) {
+      const categories = await this.categoryRepo.findBy({
+        id: In(changes.categoriesIds),
+      });
+      product.categories = categories;
+    }
+
+    this.productRepo.merge(product, changes);
+    return this.productRepo.save(product);
   }
 
   remove(id: number) {
-    const index = this.products.findIndex((item) => item.id === id);
-    if (index === -1) throw new NotFoundException('product not found');
-
-    this.products.splice(index, 1);
-    return { id };
+    return this.productRepo.delete(id);
   }
 }
