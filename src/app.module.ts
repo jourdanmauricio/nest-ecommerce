@@ -10,6 +10,7 @@ import { AppService } from './app.service';
 import { ProductsModule } from './products/products.module';
 import { UsersModule } from './users/users.module';
 import { DatabseModule } from './database/databse.module';
+import { AuthModule } from './auth/auth.module';
 import config from './config';
 
 @Module({
@@ -19,7 +20,8 @@ import config from './config';
       load: [config],
       isGlobal: true,
       validationSchema: Joi.object({
-        API_KEY: Joi.number().required(),
+        API_KEY: Joi.string().required(),
+        JWT_SECRET: Joi.string().required(),
         DATABASE_NAME: Joi.string().required(),
         DATABASE_PORT: Joi.number().required(),
         // DB Postgres
@@ -34,6 +36,7 @@ import config from './config';
     UsersModule,
     HttpModule,
     DatabseModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [
